@@ -16,6 +16,7 @@ We recommend setting up a Conda virtual environment to manage dependencies and e
 Once Conda is installed, create a new virtual environment using the provided `environment.yml` file. Run the following command:
    ```
   conda env create -f environment.yml
+  conda activate STOFS-Observer
    ```
 
 The `environment.yml` file contains the necessary packages and dependencies for this project.
