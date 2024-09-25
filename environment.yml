@@ -154,6 +154,7 @@ dependencies:
       - jmespath==1.0.1
       - jsonpointer==2.4
       - kiwisolver==1.4.5
+      - kaleido
       - limits==3.12.0
       - linkify-it-py==2.0.3
       - llvmlite==0.42.0
@@ -184,6 +185,7 @@ dependencies:
       - partd==1.4.1
       - pillow==10.3.0
       - platformdirs==4.2.0
+      - plotly-express
       - pooch==1.8.1
       - psutil==5.9.8
       - pyarrow==15.0.2
@@ -199,9 +201,10 @@ dependencies:
       - pyviz-comms==3.0.2
       - s3fs==2024.3.1
       - scipy==1.13.0
-      - searvey==0.3.12
+      - searvey
       - shapely==2.0.3
       - sortedcontainers==2.4.0
+      - stormevents
       - tblib==3.0.0
       - thalassa==0.4.5
       - toolz==0.12.1
