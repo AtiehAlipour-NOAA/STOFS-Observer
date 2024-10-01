@@ -63,20 +63,12 @@ def fetch_gfs_Nowcast_data(start_date, end_date, cycles, stations, num_time_step
         for i, cycle in enumerate(cycles):
             for hour in range(0, num_time_steps, 1):  # Loop over specified number of time steps
                 # Adjust date for the previous cycle if needed
-                if cycle == '00':
-                    current_date = datetime.strptime(date, '%Y%m%d') - timedelta(days=1)
-                    date_one_day_back = current_date.strftime('%Y%m%d')
-                    one_cycle_back = '18'
 
-                    key = f'gfs.{date_one_day_back}/{one_cycle_back}/atmos/gfs.t{one_cycle_back}z.sfluxgrbf{hour:03d}.grib2'
-                else:
-                    previous_cycle = cycles[i - 1] 
-                    cycle = previous_cycle
-
-                    key = f'gfs.{date}/{cycle}/atmos/gfs.t{cycle}z.sfluxgrbf{hour:03d}.grib2'
-
-                url = f"s3://noaa-gfs-bdp-pds/{key}"
+                key = f'gfs.{date}/{cycle}/atmos/gfs.t{cycle}z.sfluxgrbf{hour:03d}.grib2'
                 time = datetime.strptime(date, '%Y%m%d') + timedelta(hours=int(cycle)) + timedelta(hours=hour)
+
+                print(key)    
+                url = f"s3://noaa-gfs-bdp-pds/{key}"
 
                 # Fetch the GRIB2 data from S3
                 try:
@@ -133,14 +125,13 @@ def fetch_gfs_Nowcast_data(start_date, end_date, cycles, stations, num_time_step
                 # Extract values for  stations
                 if not all_times:
                     lat_indices, lon_indices = find_index_closest_data(ds, stations)  
-                    
+                    print(lat_indices)
              
                 for nos_id in  stations['nos_id']:
-                    
                     # Extract the forcing data using the index
-                    u_wind_value = ds.u_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                    v_wind_value = ds.v_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                    surface_pressure_value = ds.surface_pressure[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
+                    u_wind_value = ds.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    v_wind_value = ds.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    surface_pressure_value = ds.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
 
 
                     # Append the values to the respective DataFrames as columns with NOS ids as column names
@@ -148,13 +139,13 @@ def fetch_gfs_Nowcast_data(start_date, end_date, cycles, stations, num_time_step
                     v_wind_df[int(nos_id)]= [np.round(v_wind_value, 2)]
                     surface_pressure_df[int(nos_id)] = [np.round(surface_pressure_value, 2)]
             
-            # Append data for each station to the list
-            u_wind_dfs = pd.concat([u_wind_dfs, u_wind_df], ignore_index=True)
-            v_wind_dfs = pd.concat([v_wind_dfs, v_wind_df], ignore_index=True)
-            surface_pressure_dfs = pd.concat([surface_pressure_dfs, surface_pressure_df], ignore_index=True)
+                # Append data for each station to the list
+                u_wind_dfs = pd.concat([u_wind_dfs, u_wind_df], ignore_index=True)
+                v_wind_dfs = pd.concat([v_wind_dfs, v_wind_df], ignore_index=True)
+                surface_pressure_dfs = pd.concat([surface_pressure_dfs, surface_pressure_df], ignore_index=True)
             
-            # Store the time information 
-            all_times.append(time) 
+                # Store the time information 
+                all_times.append(time) 
 
     return u_wind_dfs, v_wind_dfs, surface_pressure_dfs, all_times
 
@@ -192,12 +183,12 @@ def fetch_gfs_Forecast_data(date, cycle, stations):
                         current_date = datetime.strptime(date, '%Y%m%d') 
                         current_date -= timedelta(days=1) # Go back one day 
                         date_one_day_back = current_date.strftime('%Y%m%d')
-                        one_cycle_back = '18'
+                        previous_cycle = '18'
 
                         # Define the filename and the location of the GRIB2 file
-                        key = f'gfs.{date_one_day_back}/{one_cycle_back}/atmos/gfs.t{one_cycle_back}z.sfluxgrbf{hour:03d}.grib2'
+                        key = f'gfs.{date_one_day_back}/{previous_cycle}/atmos/gfs.t{previous_cycle}z.sfluxgrbf{hour:03d}.grib2'
                         url = f"s3://noaa-gfs-bdp-pds/{key}"
-                        time = datetime.strptime(date_one_day_back, '%Y%m%d') + timedelta(hours=int(one_cycle_back)) + timedelta(hours=hour) 
+                        time = datetime.strptime(date_one_day_back, '%Y%m%d') + timedelta(hours=int(previous_cycle)) + timedelta(hours=hour) 
                         print(time)
                 else:
                         
@@ -217,7 +208,7 @@ def fetch_gfs_Forecast_data(date, cycle, stations):
                 key = f'gfs.{date}/{cycle}/atmos/gfs.t{cycle}z.sfluxgrbf{(hour-6):03d}.grib2'
                 url = f"s3://noaa-gfs-bdp-pds/{key}"
                 print(url)
-                time = datetime.strptime(date, '%Y%m%d') + timedelta(hours=int(previous_cycle))+ timedelta(hours=hour) 
+                time = datetime.strptime(date, '%Y%m%d') + timedelta(hours=int(cycle))+ timedelta(hours=hour-6) 
                 print(time)
                 
 
@@ -289,9 +280,9 @@ def fetch_gfs_Forecast_data(date, cycle, stations):
             for nos_id in  stations['nos_id']:
                     
                     # Extract the forcing data using the index
-                    u_wind_value = ds.u_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                    v_wind_value = ds.v_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                    surface_pressure_value = ds.surface_pressure[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
+                    u_wind_value = ds.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    v_wind_value = ds.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    surface_pressure_value = ds.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
 
 
                     # Append the values to the respective DataFrames as columns with NOS ids as column names
@@ -430,14 +421,14 @@ def fetch_gfs_Forecast_data(date, cycle, stations):
             for nos_id in stations['nos_id']:
 
                 # Extract the current forcing data using the index 
-                u_wind_value_0 = ds_current.u_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                v_wind_value_0 = ds_current.v_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                surface_pressure_value_0 = ds_current.surface_pressure[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
+                u_wind_value_0 = ds_current.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                v_wind_value_0 = ds_current.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                surface_pressure_value_0 = ds_current.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
 
                 # Extract the next forcing data using the index 
-                u_wind_value_3 = ds_next.u_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                v_wind_value_3 = ds_next.v_wind[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
-                surface_pressure_value_3 = ds_next.surface_pressure[0, lat_indices[int(nos_id)][0][0], lon_indices[int(nos_id)][0][0]].values
+                u_wind_value_3 = ds_next.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                v_wind_value_3 = ds_next.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                surface_pressure_value_3 = ds_next.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
             
                 # Calculate interpolation coefficient
                 u_wind_coeff = (u_wind_value_3 - u_wind_value_0) / 3
@@ -458,9 +449,3 @@ def fetch_gfs_Forecast_data(date, cycle, stations):
     
 
     return u_wind_dfs, v_wind_dfs, surface_pressure_dfs, all_times
-
-
-
-
-
-

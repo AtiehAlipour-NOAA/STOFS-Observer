@@ -101,11 +101,9 @@ def get_station_data(filename, modelname, directoryname, bucketname, date, cycle
        key = f'{directoryname}/{base_key}/{modelname}.{dataname}'
     else:
        key = f'{base_key}/{modelname}.{dataname}'
-                
     try:
        dataset = read_STOFS_from_s3(bucketname, key)
     except Exception as e:
                 print(f'Error reading file {key} from S3: {str(e)}')
     return dataset
-
 
