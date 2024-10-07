@@ -5,6 +5,7 @@ import xarray as xr
 from datetime import datetime, timedelta, timezone
 
 
+#STOFS.py functions
 def read_STOFS_from_s3(bucket_name, key):
     """
     Function to read a STOFS station files from an S3 bucket.
@@ -106,4 +107,3 @@ def get_station_data(filename, modelname, directoryname, bucketname, date, cycle
     except Exception as e:
                 print(f'Error reading file {key} from S3: {str(e)}')
     return dataset
-

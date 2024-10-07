@@ -307,8 +307,8 @@ def fetch_gfs_Forecast_data(date, cycle, stations):
 
             key_current = f'gfs.{date}/{cycle}/atmos/gfs.t{cycle}z.sfluxgrbf{(hour-6):03d}.grib2'
             url_current = f"s3://noaa-gfs-bdp-pds/{key_current}"
-            time = datetime.strptime(date, '%Y%m%d') + timedelta(hours=int(previous_cycle)) + timedelta(hours=hour) 
-
+             
+            print(url_current)
             # Fetch the GRIB2 data from S3 for the current hour
             s3_current = s3fs.S3FileSystem(anon=True)
             with s3_current.open(url_current, 'rb') as f_current:
@@ -417,35 +417,38 @@ def fetch_gfs_Forecast_data(date, cycle, stations):
                 v_wind_df = pd.DataFrame()
                 surface_pressure_df = pd.DataFrame()
     
-            # Loop over the elements of station_ds['y'] and station_ds['x']
-            for nos_id in stations['nos_id']:
+                # Loop over the elements of station_ds['y'] and station_ds['x']
+                for nos_id in stations['nos_id']:
 
-                # Extract the current forcing data using the index 
-                u_wind_value_0 = ds_current.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
-                v_wind_value_0 = ds_current.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
-                surface_pressure_value_0 = ds_current.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    # Extract the current forcing data using the index 
+                    u_wind_value_0 = ds_current.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    v_wind_value_0 = ds_current.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    surface_pressure_value_0 = ds_current.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
 
-                # Extract the next forcing data using the index 
-                u_wind_value_3 = ds_next.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
-                v_wind_value_3 = ds_next.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
-                surface_pressure_value_3 = ds_next.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
-            
-                # Calculate interpolation coefficient
-                u_wind_coeff = (u_wind_value_3 - u_wind_value_0) / 3
-                v_wind_coeff = (v_wind_value_3 - v_wind_value_0) / 3 
-                surface_pressure_coeff = (surface_pressure_value_3 - surface_pressure_value_0) / 3 
-                        
-                # Append the values to the respective DataFrames as columns with NOS ids as column names
-                u_wind_df[int(nos_id)] = [np.round(u_wind_value_0, 2)] + hour_1*u_wind_coeff
-                v_wind_df[int(nos_id)]= [np.round(v_wind_value_0, 2)] + hour_1*v_wind_coeff
-                surface_pressure_df[int(nos_id)] = [np.round(surface_pressure_value_0, 2)] + hour_1*surface_pressure_coeff
+                    # Extract the next forcing data using the index 
+                    u_wind_value_3 = ds_next.u_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    v_wind_value_3 = ds_next.v_wind[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+                    surface_pressure_value_3 = ds_next.surface_pressure[0, lat_indices[nos_id][0][0], lon_indices[nos_id][0][0]].values
+             
+                    # Calculate interpolation coefficient
+                    u_wind_coeff = (u_wind_value_3 - u_wind_value_0) / 3
+                    v_wind_coeff = (v_wind_value_3 - v_wind_value_0) / 3 
+                    surface_pressure_coeff = (surface_pressure_value_3 - surface_pressure_value_0) / 3 
+                           
+                    # Append the values to the respective DataFrames as columns with NOS ids as column names
+                    u_wind_df[int(nos_id)] = [np.round(u_wind_value_0, 2)] + hour_1*u_wind_coeff
+                    v_wind_df[int(nos_id)]= [np.round(v_wind_value_0, 2)] + hour_1*v_wind_coeff
+                    surface_pressure_df[int(nos_id)] = [np.round(surface_pressure_value_0, 2)] + hour_1*surface_pressure_coeff
 
-            u_wind_dfs = pd.concat([u_wind_dfs, u_wind_df], ignore_index=True)
-            v_wind_dfs = pd.concat([v_wind_dfs, v_wind_df], ignore_index=True)
-            surface_pressure_dfs = pd.concat([surface_pressure_dfs, surface_pressure_df], ignore_index=True)
-            all_times.append(time) 
+                u_wind_dfs = pd.concat([u_wind_dfs, u_wind_df], ignore_index=True)
+                v_wind_dfs = pd.concat([v_wind_dfs, v_wind_df], ignore_index=True)
+                surface_pressure_dfs = pd.concat([surface_pressure_dfs, surface_pressure_df], ignore_index=True)
+                time = datetime.strptime(date, '%Y%m%d') + timedelta(hours=int(previous_cycle)) + timedelta(hours=hour)+timedelta(hours=hour_1)
+                all_times.append(time) 
 
 
     
 
     return u_wind_dfs, v_wind_dfs, surface_pressure_dfs, all_times
+
+
