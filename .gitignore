@@ -1,0 +1,11 @@
+# python compiler files:
+__pycache__/
+*.py[cod]
+STOFS-Observer/__pycache__/
+STOFS-Observer/__pycache__/*
+
+# Jupyter notebook stuff:
+STOFS-Observer/.ipynb_checkpoints
+STOFS-Observer/.ipynb_checkpoints/*
+STOFS-Observer/examples/.ipynb_checkpoints
+STOFS-Observer/examples/.ipynb_checkpoints/*
